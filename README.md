@@ -108,7 +108,13 @@ The real-data application (`11_run_real_data.R`) requires environmental observat
 
 The application uses air quality observations from Northern Italy for four pollutants: NO2, O3, PM10, and PM2.5.
 
-The script `01_prepare_real_data.R` expects a preprocessed CSV file located at:
+The acquisition and preprocessing of the original EEA observations follow the pipeline developed by Gaia Caringi, available at:
+
+**[EEA Pollutant Processing Pipeline — Gaia Caringi](https://github.com/gaiacaringi/eea-pollutant-processing-pipeline)**
+
+This pipeline handles data import, cleaning, daily aggregation, and spatial quantile trimming. Users are referred to the linked repository for detailed instructions on preparing the environmental observations.
+
+The ST-CoFRK implementation expects a preprocessed CSV file located at:
 
 `data/dataset_clean.csv`
 
@@ -118,24 +124,15 @@ The CSV must contain the following columns:
 |---|---|
 | `lon` | Monitoring station longitude in decimal degrees (WGS84) |
 | `lat` | Monitoring station latitude in decimal degrees (WGS84) |
-| `date` | Observation date, preferably in `YYYY-MM-DD` format |
+| `date` | Observation date in `YYYY-MM-DD` format |
 | `pollutant` | Pollutant identifier: `NO2`, `O3`, `PM10`, or `PM25` |
 | `value` | Observed pollutant concentration, in consistent units |
 | `altitude` | Altitude associated with the monitoring location, in metres |
 | `population_density` | Population covariate associated with the monitoring location |
 
-The input file must already contain the spatial covariates `altitude` and `population_density`. These are not automatically retrieved for monitoring stations by the preprocessing script.
+The first five columns can be obtained from the cleaned dataset produced by Gaia Caringi's pipeline. The additional spatial covariates, `altitude` and `population_density`, must be associated with the monitoring locations before using ST-CoFRK.
 
-The preparation routine:
-
-1. Filters the selected pollutants and invalid observations.
-2. Constructs spatial Basic Areal Units (BAUs) of 1.6 km × 1.6 km using the EPSG:3035 coordinate reference system.
-3. Constructs temporal BAUs of seven days, aligned to Mondays.
-4. Aggregates observations by pollutant, spatial BAU, and week using their arithmetic mean.
-5. Aggregates station-level spatial covariates to the BAU level and standardizes them.
-6. Constructs annual seasonal covariates and the observation and prediction structures required by ST-CoFRK.
-
-The input must use consistent concentration units and pollutant identifiers. The repository does not include a complete preprocessing pipeline from raw EEA downloads to `dataset_clean.csv`.
+Once the completed dataset is saved as `data/dataset_clean.csv`, the script `01_prepare_real_data.R` constructs spatial and temporal BAUs, aggregates the observations by pollutant and week, standardizes the spatial covariates, and prepares the data structures required for model estimation.
 
 ### 2. Population data — Eurostat Census Grid 2021
 
